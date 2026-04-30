@@ -88,10 +88,10 @@ Currently this codebase is in its initial release. All features marked as comple
 
 ## Citing
 ```
-@article{luo2026glp,
+@inproceedings{luo2026glp,
   title={Learning a Generative Meta-Model of LLM Activations},
   author={Grace Luo and Jiahai Feng and Trevor Darrell and Alec Radford and Jacob Steinhardt},
-  journal={arXiv preprint arXiv:2602.06964},
+  booktitle={ICML},
   year={2026}
 }
 ```
