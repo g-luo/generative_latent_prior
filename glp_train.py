@@ -4,7 +4,6 @@ import os
 import re
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from functools import partial
 from pathlib import Path
 from typing import Any, List, Optional
@@ -201,7 +200,10 @@ def main(device="cuda:0"):
     logger.info(f"Model param count: {sum(p.numel() for p in model.parameters())}")
 
     # load dataset
-    train_dataset = load_activation_dataset(config.train_dataset)
+    if "dynamic" in config.train_dataset:
+        train_dataset = load_dynamic_dataset(config.train_dataset)
+    else:
+        train_dataset = load_activation_dataset(config.train_dataset)
     train_dataloader = get_activation_dataloader(
         dataset=train_dataset,
         batch_size=config.batch_size // config.gradient_accumulation_steps,
