@@ -1,8 +1,8 @@
-# python3 glp_save.py config=save_llama1b_dynamic.yaml
+# python3 glp_save.py config=configs/save_llama1b_dynamic.yaml
 save_root: .
 model_name: meta-llama/Llama-3.2-1B
 run_name: save_glp-llama1b_dynamic-1B
-output_path: ${save_root}/data/llama1b-fineweb-1B
+output_path: ${save_root}/data/llama1b-dynamic-fineweb-1B
 # wandb
 wandb_enabled: True
 wandb_project: glp
@@ -28,5 +28,6 @@ vllm_kwargs:
 # saving
 batch_size: 10 # batch size for A100 80GB
 max_length: 2048 # max sequence length before truncation
-acts_per_shard: 1000000 # acts to store per shard
-max_total_acts: 5000000 # total acts to store before flushing
+tokens_per_doc: all # all, last, or random subset of tokens per doc
+acts_per_shard: 100000 # acts to store per shard
+max_total_acts: 1000000 # total acts to store before flushing

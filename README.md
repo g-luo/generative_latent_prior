@@ -60,7 +60,7 @@ In the demo, we'll walk through loading a GLP, generating activations, then usin
 
 *Note:* In the paper, we use the variable `t` to denote the timestep. In the codebase, we follow the [diffusers](https://github.com/huggingface/diffusers) scheduler convention and use `u = 1 - t` instead.
 
-## Training
+## Quickstart Training
 🌟 **TLDR:** For a quickstart, train a toy Llama1B GLP in a few minutes.
 ```
 # download data
@@ -78,13 +78,26 @@ representing the first 1M activations of the full dynamic dataset.
 Even on this small dataset, you should see a beautiful loss curve that _just goes down_.
 You can also download the [Llama8B sanity dataset](https://huggingface.co/datasets/generative-latent-prior/llama8b-layer15-fineweb-1M). Training on the full one billion activations takes 5.6 days for the Llama8B GLP.
 
+## Large-Scale Training
+
+For actual large-scale training, we recommend using the dynamic producer-consumer data pipeline. This pipeline requires two GPUs: one producer process saves activations, and one consumer process trains the GLP from those activations.
+
+```
+# GPU 0: activation producer
+conda activate glp
+CUDA_VISIBLE_DEVICES=0 python3 glp_save.py config=configs/save_llama1b_dynamic.yaml
+
+# GPU 1: GLP trainer
+CUDA_VISIBLE_DEVICES=1 python3 glp_train.py config=configs/train_llama1b_dynamic.yaml
+```
+
 ## Roadmap
 Currently this codebase is in its initial release. All features marked as complete below are stable and ready to use. The others are still in progress.
 - [x] Release pre-trained GLP weights
 - [x] Release training code at `glp_train.py`
 - [x] Release Persona Vectors steering at `integrations/persona_vectors`
 - [x] Release 1-D probing at `glp/script_probe.py` 
-- [ ] Release dynamic producer-consumer data pipeline at `glp_save.py`
+- [x] Release dynamic producer-consumer data pipeline at `glp_save.py`
 
 ## Citing
 ```
