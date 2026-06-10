@@ -1,14 +1,14 @@
-# python3 glp_train.py config=configs/train_llama1b_dynamic.yaml
+# python3 glp_train.py config=configs/train_llama8b_dynamic.yaml
 save_root: .
-model_name: meta-llama/Llama-3.2-1B
-run_name: glp-llama1b-d${glp_kwargs.denoiser_config.n_layers}_dynamic-1B
+model_name: meta-llama/Meta-Llama-3.1-8B
+run_name: glp-llama8b-d${glp_kwargs.denoiser_config.n_layers}_dynamic-1B
 output_path: ${save_root}/runs/${run_name}
 # wandb
 wandb_enabled: True
 wandb_project: glp
 wandb_run_name: ${run_name}
 # data
-train_dataset: ${save_root}/data/llama1b-dynamic-fineweb-1B/layer_07
+train_dataset: ${save_root}/data/llama8b-dynamic-fineweb-1B/layer_15
 rep_statistic: ${train_dataset}/rep_statistics.pt
 dynamic_dataset: True # stream from the producer-consumer shard buffer
 # Single epoch over the full ~1B-act stream (the dynamic dataset is infinite, so
@@ -27,16 +27,16 @@ glp_kwargs:
   normalizer_config:
     rep_statistic: ${rep_statistic}
   denoiser_config:
-    d_input: 2048 # llm hidden dim
-    d_model: 4096 # d_input * 2
-    d_mlp: 8192 # d_input * 4
-    n_layers: 3
+    d_input: 4096 # llm hidden dim
+    d_model: 8192 # d_input * 2
+    d_mlp: 16384 # d_input * 4
+    n_layers: 6
     multi_layer_n_layers: null # used for multi-layer training
   # metadata describing training data
   # this is an annotation, not a training hparam
   tracedict_config:
     layer_prefix: "model.layers"
-    layers: [7]
+    layers: [15]
     retain: "output" # controls what to save; one of ["input", "output"]
 # training
 use_bf16: True

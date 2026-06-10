@@ -29,6 +29,7 @@ class TrainConfig:
     shuffle: bool = True
     train_dataset: str = ""
     rep_statistic: str = ""
+    dynamic_dataset: bool = False  # stream from the producer-consumer shard buffer
     # training
     use_bf16: bool = True
     num_epochs: int = 1
@@ -87,7 +88,8 @@ def main(device="cuda:0"):
     output_path = Path(config.output_path)
     output_path.mkdir(parents=True, exist_ok=True)
     logger.info(f"Saving checkpoints to {output_path}")
-    OmegaConf.save(config, output_path / "config.yaml")
+    # resolve=True bakes in interpolations (incl. ${oc.env:...}) for provenance
+    OmegaConf.save(config, output_path / "config.yaml", resolve=True)
 
     # wait for rep_statistic from producer
     rep_statistic = config.glp_kwargs.get("normalizer_config", {}).get("rep_statistic")
@@ -118,8 +120,8 @@ def main(device="cuda:0"):
 
     # load dataset
     train_dataset = load_activation_dataset(
-        config.train_dataset, 
-        dynamic="dynamic" in config.train_dataset
+        config.train_dataset,
+        dynamic=config.dynamic_dataset
     )
     train_dataloader = get_activation_dataloader(
         dataset=train_dataset,

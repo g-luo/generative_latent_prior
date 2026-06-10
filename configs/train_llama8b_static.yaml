@@ -10,6 +10,7 @@ wandb_run_name: ${run_name}
 # data
 train_dataset: ${save_root}/data/llama8b-layer15-fineweb-1M
 rep_statistic: ${train_dataset}/rep_statistics.pt
+dynamic_dataset: False # train from a fixed pre-downloaded activation dataset
 num_epochs: 1
 save_epochs: [1]
 shuffle: True

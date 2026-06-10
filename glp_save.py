@@ -30,6 +30,12 @@ class SaveActivationsConfig:
     wandb_entity: Optional[str] = None
     wandb_project: Optional[str] = None
     wandb_run_name: Optional[str] = None
+    # data
+    dataset_path: str = "HuggingFaceFW/fineweb"
+    dataset_name: Optional[str] = None
+    dataset_split: str = "train"
+    val_size: int = 10000
+    seed: int = 42
     # nnsight
     latent_model_config: dict = field(default_factory=dict)
     # vllm

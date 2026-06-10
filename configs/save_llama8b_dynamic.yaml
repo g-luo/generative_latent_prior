@@ -1,0 +1,34 @@
+# python3 glp_save.py config=configs/save_llama8b_dynamic.yaml
+save_root: .
+model_name: meta-llama/Meta-Llama-3.1-8B
+run_name: save_glp-llama8b_dynamic-1B
+output_path: ${save_root}/data/llama8b-dynamic-fineweb-1B
+# wandb
+wandb_enabled: True
+wandb_project: glp
+wandb_run_name: ${run_name}
+# data
+dataset_path: HuggingFaceFW/fineweb
+dataset_name: sample-10BT
+dataset_split: train
+val_size: 10000
+seed: 42
+# nnsight
+latent_model_config:
+  hook_kwargs:
+    input:
+      embed_layer: model.embed_tokens
+      # list layers 0-31 if doing multi-layer training
+      layers:
+        - model.layers.15
+  hook_mode: output
+# vllm
+vllm_kwargs:
+  # 8B weights (~16GB bf16) need most of a 40GB card; 0.5 was for 1B on A100 80GB
+  gpu_memory_utilization: 0.85
+# saving
+batch_size: 4 # reduced from 10 (A100 80GB) for 8B on A100 40GB
+max_length: 2048 # max sequence length before truncation
+tokens_per_doc: all # all, last, or random subset of tokens per doc
+acts_per_shard: 100000 # acts to store per shard
+max_total_acts: 1000000 # total acts to store before flushing

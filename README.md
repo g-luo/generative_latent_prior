@@ -73,10 +73,10 @@ conda activate glp
 python3 glp_train.py config=configs/train_llama1b_static.yaml
 ```
 
-Currently training is pre-set to a small static sanity dataset with 1M activations,
+This trains on a small static sanity dataset with 1M activations,
 representing the first 1M activations of the full dynamic dataset.
 Even on this small dataset, you should see a beautiful loss curve that _just goes down_.
-You can also download the [Llama8B sanity dataset](https://huggingface.co/datasets/generative-latent-prior/llama8b-layer15-fineweb-1M). Training on the full one billion activations takes 5.6 days for the Llama8B GLP.
+You can also download the [Llama8B sanity dataset](https://huggingface.co/datasets/generative-latent-prior/llama8b-layer15-fineweb-1M) and use `configs/train_llama8b_static.yaml`. Training on the full one billion activations takes 5.6 days for the Llama8B GLP.
 
 ## Large-Scale Training
 
@@ -91,12 +91,21 @@ CUDA_VISIBLE_DEVICES=0 python3 glp_save.py config=configs/save_llama1b_dynamic.y
 CUDA_VISIBLE_DEVICES=1 python3 glp_train.py config=configs/train_llama1b_dynamic.yaml
 ```
 
+For Llama8B, use `configs/save_llama8b_dynamic.yaml` and `configs/train_llama8b_dynamic.yaml`.
+
+For how the dynamic pipeline works (shard lifecycle, locking, and ejection),
+see the module docstring in `glp_dataset.py`.
+
 ## Roadmap
-Currently this codebase is in its initial release. All features marked as complete below are stable and ready to use. The others are still in progress.
+All features marked as complete below are stable and ready to use.
+
+**02-06-2026**
 - [x] Release pre-trained GLP weights
 - [x] Release training code at `glp_train.py`
 - [x] Release Persona Vectors steering at `integrations/persona_vectors`
-- [x] Release 1-D probing at `glp/script_probe.py` 
+- [x] Release 1-D probing at `glp/script_probe.py`
+
+**09-07-2026**
 - [x] Release dynamic producer-consumer data pipeline at `glp_save.py`
 
 ## Citing

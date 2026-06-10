@@ -1,3 +1,29 @@
+"""Activation datasets, including the dynamic producer-consumer pipeline.
+
+How the dynamic pipeline works:
+
+- Producer (`glp_save.py`): runs the LLM over FineWeb documents, caches the
+  hooked-layer activations, and writes them into a sliding shard buffer under
+  `data/<name>/layer_XX/` (`DynamicActWriter`). Shards are written as `.tmp`,
+  committed as `.ready` (`acts_per_shard` activations each), and the buffer is
+  capped at `max_total_acts`: once full, the producer ejects the oldest
+  non-active shard before starting a new one. It also maintains running
+  `rep_statistics.pt` (mean/std) used for activation normalization.
+
+- Trainer (`glp_train.py`): first waits for `rep_statistics.pt` to appear,
+  then streams shards from the buffer (`DynamicActDataset`), promoting
+  `.ready` shards to `.active` (which lock-protects them from ejection) and
+  never revisiting a shard. This means activations are seen at most once. If the
+  trainer outpaces the producer it idles until a new shard is committed; if
+  the producer outpaces the trainer it blocks on ejecting the active shard.
+
+- Orchestration: launch both processes per the README (producer on one GPU,
+  trainer on another, e.g. from a `run_full.sh`-style script or two tmux
+  panes). The trainer can be started before the producer has written
+  anything; it will wait. Since the dynamic stream is infinite, `epoch_size`
+  (1M activations) defines an "epoch" and `num_epochs`/`save_epochs` bound
+  the run (defaults: 1024 epochs ~= 1B activations, log-scale checkpoints).
+"""
 import fcntl
 import json
 import os
@@ -95,8 +121,6 @@ class DynamicActWriter:
         self.token_buffer = []
         self.doc_buffer = []
 
-        # NOTE: ideally dtype is saved in a meta file and automatically known
-        # but for now we just assume we use only with DynamicActDataset
         self.dtype = dtype
         write_dtype(self.data_dir, self.dtype)
 
@@ -128,7 +152,12 @@ class DynamicActWriter:
                 time.sleep(5)
                 continue
             oldest_flag = shards[0]
-            f = open(oldest_flag / ".lock", 'r')
+            try:
+                f = open(oldest_flag / ".lock", 'r')
+            except FileNotFoundError:
+                # a consumer promoted (.ready -> .active) or ejected this shard
+                # between the glob above and here; re-scan instead of crashing
+                continue
             try:
                 fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 print(f"Producer: ejecting tail shard: {oldest_flag.name}")
@@ -140,6 +169,8 @@ class DynamicActWriter:
                 print(f"Producer: tail shard {oldest_flag.name} is ACTIVE. Waiting...", end="")
                 time.sleep(5)
                 continue
+            finally:
+                f.close()
 
         # start new shard
         self.current_shard_id = f"shard_{int(time.time() * 1000):015d}"
@@ -192,6 +223,9 @@ class DynamicActWriter:
         self.mo2 = self.mo2 * (c_count / (c_count + n_count)) + n_mo2 * (n_count / (c_count + n_count))
         
     def flush(self):
+        # nothing was ever written (e.g., every batch errored out)
+        if self.current_writer is None:
+            return
         self.current_writer.flush()
         temp_dir = self.data_dir / f"{self.current_shard_id}.tmp"
         json.dump(self.token_buffer, open(temp_dir / "token_buffer.json", "w"))
@@ -205,7 +239,7 @@ class DynamicActWriter:
 class DynamicActDataset(IterableDataset):
     def __init__(self, data_dir, dtype=np.int16):
         super().__init__()
-        self.data_dir = data_dir
+        self.data_dir = Path(data_dir)
         self.seen_shards = set()
         self.dtype = dtype
 
@@ -248,8 +282,6 @@ class DynamicActDataset(IterableDataset):
                     fcntl.flock(f, fcntl.LOCK_SH)
                     reader = MemmapReader(self.data_dir / f"{batch_id}.active", dtype=self.dtype)
                     act_dataset = ActDataset(reader=reader)
-                    # TODO: seed based on shard
-                    # np.random.seed(int(batch_id.split("_")[-1]))
                     # randomly shuffle indices to avoid tokens from same doc
                     for idx in np.random.permutation(range(len(act_dataset))):
                         yield act_dataset.__getitem__(idx)
