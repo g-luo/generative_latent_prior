@@ -1,6 +1,6 @@
 **__pycache__**
-**runs**
-**data**
+runs/
+data/
 **wandb**
 **experimental**
 integrations/persona_vectors/persona_vectors/
