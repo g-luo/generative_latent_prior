@@ -91,12 +91,8 @@ CUDA_VISIBLE_DEVICES=0 python3 glp_save.py config=configs/save_llama1b_dynamic.y
 CUDA_VISIBLE_DEVICES=1 python3 glp_train.py config=configs/train_llama1b_dynamic.yaml
 ```
 
-For Llama8B, use `configs/save_llama8b_dynamic.yaml` and `configs/train_llama8b_dynamic.yaml`.
-
-For how the dynamic pipeline works (shard lifecycle, locking, and ejection),
-see the module docstring in `glp_dataset.py`.
-
-For reference, the below figure shows the training loss and Fréchet distance curves from a full 1B-activation run of this pipeline:
+For Llama8B, use `configs/save_llama8b_dynamic.yaml` and `configs/train_llama8b_dynamic.yaml`. For how the dynamic pipeline works (shard lifecycle, locking, and ejection),
+see the module docstring in `glp_dataset.py`. For reference, the below figure shows the training loss and Fréchet distance curves from a full 1B-activation run of this pipeline:
 
 ![Training curves](assets/large_scale_training/training_curves.png)
 
