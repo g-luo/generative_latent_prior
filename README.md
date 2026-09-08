@@ -96,6 +96,10 @@ For Llama8B, use `configs/save_llama8b_dynamic.yaml` and `configs/train_llama8b_
 For how the dynamic pipeline works (shard lifecycle, locking, and ejection),
 see the module docstring in `glp_dataset.py`.
 
+For reference, the below figure shows the training loss and Fréchet distance curves from a full 1B-activation run of this pipeline:
+
+![Training curves](assets/large_scale_training/training_curves.png)
+
 ## Roadmap
 All features marked as complete below are stable and ready to use.
 
