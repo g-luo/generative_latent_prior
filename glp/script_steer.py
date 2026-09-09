@@ -1,5 +1,6 @@
 from baukit import TraceDict
 import einops
+import pandas as pd
 import torch
 import transformers
 
@@ -69,6 +70,27 @@ def addition_intervention(w=None, alphas=None, postprocess_fn=None):
             act[:, [-1], :] = postprocess_fn(act[:, [-1], :] + alphas * w)
         return (act, *output[1:]) if use_tuple else act
     return rep_act
+
+def steer_sweep(hf_model, hf_tokenizer, prefixes, alphas, w, layer, act_norm, postprocess_fn=None, batch_size=100, max_new_tokens=20, temperature=0, seed=42):
+    hf_tokenizer.padding_side = "left"
+    rows = []
+    for i in range(0, len(prefixes), batch_size):
+        batch = prefixes[i:i + batch_size]
+        batch_text = sum([[text] * len(alphas) for text in batch], [])
+        batch_alphas = alphas.repeat(len(batch))
+        generate_with_intervention = generate_with_intervention_wrapper(seed=seed)
+        gen_text = generate_with_intervention(
+            batch_text,
+            hf_model,
+            hf_tokenizer,
+            layers=[f"model.layers.{layer}"],
+            intervention_wrapper=addition_intervention,
+            # save interpretable alpha but apply act_norm
+            intervention_kwargs={"w": w, "alphas": batch_alphas * act_norm, "postprocess_fn": postprocess_fn},
+            generate_kwargs={"max_new_tokens": max_new_tokens, "do_sample": temperature > 0, "temperature": temperature},
+        )
+        rows += [{"alpha": a.item(), "prefix": p, "text": t} for a, p, t in zip(batch_alphas, batch_text, gen_text)]
+    return pd.DataFrame(rows)
 
 def generate(model, processor, inputs, remove_input=True, **generate_kwargs):
     with torch.no_grad():

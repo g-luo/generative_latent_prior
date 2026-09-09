@@ -56,7 +56,7 @@ In the demo, we'll walk through loading a GLP, generating activations, then usin
 
 ## Applications
 - **Scalar 1-D Probing:** Evaluate on the 113 binary classification datasets from [Kantamneni et. al., 2025](https://github.com/JoshEngels/SAE-Probes), by running `python3 glp/script_probe.py`.
-- **On-Manifold Steering:** Post-process [Persona Vectors](https://github.com/safety-research/persona_vectors) by following the instructions at `integrations/persona_vectors/README.md`.
+- **On-Manifold Steering:** Post-process [Persona Vectors](https://github.com/safety-research/persona_vectors), SST-5 sentiment vectors, or [LlamaScope](https://huggingface.co/fnlp/Llama3_1-8B-Base-LXR-32x) SAE directions by following the instructions at `integrations/{persona_vectors,sentiment,sae}/README.md`.
 
 *Note:* In the paper, we use the variable `t` to denote the timestep. In the codebase, we follow the [diffusers](https://github.com/huggingface/diffusers) scheduler convention and use `u = 1 - t` instead.
 
@@ -107,6 +107,9 @@ All features marked as complete below are stable and ready to use.
 
 **09-07-2026**
 - [x] Release dynamic producer-consumer data pipeline at `glp_save.py`
+
+**09-08-2026**
+- [x] Release SAE and sentiment-based steering at `integrations/sae` and `integrations/sentiment`
 
 ## Citing
 ```

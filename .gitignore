@@ -1,7 +1,8 @@
-**__pycache__**
-runs/
-data/
-**wandb**
-**experimental**
+__pycache__/
+.ipynb_checkpoints/
+runs
+data
+wandb
+experimental
 integrations/persona_vectors/persona_vectors/
 glp.egg-info/
