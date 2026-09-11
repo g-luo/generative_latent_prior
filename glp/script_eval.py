@@ -139,7 +139,7 @@ class EvalConfig:
     seed: int = 42
     layer_idx: int | None = None # for glp-llama1b-d12-multi set layer_idx=7, otherwise set to None
 
-def evaluate_sparse_probing(device="cuda:0"):
+def evaluate_fd(device="cuda:0"):
     default_config = OmegaConf.structured(EvalConfig)
     OmegaConf.set_struct(default_config, False)
     config = OmegaConf.merge(default_config, OmegaConf.from_cli())
@@ -174,4 +174,4 @@ def evaluate_sparse_probing(device="cuda:0"):
     print(f"FD: {fd}")
 
 if __name__ == "__main__":
-    evaluate_sparse_probing()
+    evaluate_fd()
