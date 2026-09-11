@@ -1,0 +1,70 @@
+# python3 glp_train.py config=configs/train_llama1b_dynamic_multilayer.yaml
+save_root: .
+model_name: meta-llama/Llama-3.2-1B
+run_name: glp-llama1b-d${glp_kwargs.denoiser_config.n_layers}-dynamic_multilayer-1B
+output_path: ${save_root}/runs/${run_name}
+# wandb
+wandb_enabled: True
+wandb_project: glp
+wandb_run_name: ${run_name}
+# data
+dataset_root: ${save_root}/data/llama1b-multi-dynamic-fineweb-1B
+train_dataset:
+  - ${dataset_root}/layer_00
+  - ${dataset_root}/layer_01
+  - ${dataset_root}/layer_02
+  - ${dataset_root}/layer_03
+  - ${dataset_root}/layer_04
+  - ${dataset_root}/layer_05
+  - ${dataset_root}/layer_06
+  - ${dataset_root}/layer_07
+  - ${dataset_root}/layer_08
+  - ${dataset_root}/layer_09
+  - ${dataset_root}/layer_10
+  - ${dataset_root}/layer_11
+  - ${dataset_root}/layer_12
+  - ${dataset_root}/layer_13
+  - ${dataset_root}/layer_14
+  - ${dataset_root}/layer_15
+rep_statistic: ${dataset_root}/rep_statistics.pt # per-layer stats stacked by the producer
+dynamic_dataset: True # stream from the producer-consumer shard buffer
+# Single epoch over the full ~1B-act stream (the dynamic dataset is infinite, so
+# epoch_size bounds it). Multi-epoch runs hit a mid-shard drop/duplication bug at
+# every epoch boundary; a single epoch has no boundaries. Intermediate checkpoints
+# come from save_every_n_steps: 7812 steps x 4096 acts ~= 32M acts per interval,
+# so step_{7812*k} is the model after ~k*32M stream acts.
+epoch_size: 1000000000
+num_epochs: 1
+save_epochs: [1]
+save_every_n_steps: 7812
+shuffle: True
+# model
+glp_kwargs:
+  # these are training hparams
+  normalizer_config:
+    rep_statistic: ${rep_statistic}
+  denoiser_config:
+    d_input: 2048 # llm hidden dim
+    d_model: 4096 # d_input * 2
+    d_mlp: 8192 # d_input * 4
+    n_layers: 12
+    multi_layer_n_layers: 16 # conditions the denoiser on the layer position
+  # metadata describing training data
+  # this is an annotation, not a training hparam
+  tracedict_config:
+    layer_prefix: "model.layers"
+    layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    retain: "output" # controls what to save; one of ["input", "output"]
+# training
+use_bf16: True
+learning_rate: 5e-5
+batch_size: 4096
+gradient_accumulation_steps: 1
+gradient_clipping_threshold: 1
+log_every_n_steps: 10
+save_opt_state: True
+lr_scheduler:
+  scheduler_cls: cosine_scheduler_with_warmup
+  warmup_ratio: 0.01
+  initial_factor: 0.01
+  final_factor: 0.1

@@ -27,7 +27,7 @@ class TrainConfig:
     glp_kwargs: Optional[Any] = None
     # data
     shuffle: bool = True
-    train_dataset: str = ""
+    train_dataset: Any = ""  # str or list[str] (multi-layer)
     rep_statistic: str = ""
     dynamic_dataset: bool = False  # stream from the producer-consumer shard buffer
     # training

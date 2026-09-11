@@ -1,0 +1,47 @@
+# python3 glp_save.py config=configs/save_llama1b_dynamic_multilayer.yaml
+save_root: .
+model_name: meta-llama/Llama-3.2-1B
+run_name: save_glp-llama1b-dynamic_multilayer-1B
+output_path: ${save_root}/data/llama1b-multi-dynamic-fineweb-1B
+# wandb
+wandb_enabled: True
+wandb_project: glp
+wandb_run_name: ${run_name}
+# data
+dataset_path: HuggingFaceFW/fineweb
+dataset_name: sample-10BT
+dataset_split: train
+val_size: 10000
+seed: 42
+# nnsight
+latent_model_config:
+  hook_kwargs:
+    input:
+      embed_layer: model.embed_tokens
+      layers:
+        - model.layers.0
+        - model.layers.1
+        - model.layers.2
+        - model.layers.3
+        - model.layers.4
+        - model.layers.5
+        - model.layers.6
+        - model.layers.7
+        - model.layers.8
+        - model.layers.9
+        - model.layers.10
+        - model.layers.11
+        - model.layers.12
+        - model.layers.13
+        - model.layers.14
+        - model.layers.15
+  hook_mode: output
+# vllm
+vllm_kwargs:
+  gpu_memory_utilization: 0.5
+# saving
+batch_size: 10 # batch size for A100 80GB
+max_length: 2048 # max sequence length before truncation
+tokens_per_doc: all # all, last, or random subset of tokens per doc
+acts_per_shard: 100000 # acts to store per shard
+max_total_acts: 1000000 # total acts to store before flushing

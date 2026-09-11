@@ -96,6 +96,34 @@ see the module docstring in `glp_dataset.py`. For reference, the below figure sh
 
 ![Training curves](assets/large_scale_training/training_curves.png)
 
+### Multi-Layer Training
+
+The same large-scale training pipeline also supports multi-layer training with an updated config. The multi-layer GLP additionally conditions on the layer position, which is encoded with a sinusoidal embedding and added to the timestep embedding.
+
+```
+# GPU 0: activation producer (all layers 00-15)
+conda activate glp
+CUDA_VISIBLE_DEVICES=0 python3 glp_save.py config=configs/save_llama1b_dynamic_multilayer.yaml
+
+# GPU 1: GLP trainer
+CUDA_VISIBLE_DEVICES=1 python3 glp_train.py config=configs/train_llama1b_dynamic_multilayer.yaml
+```
+
+When sampling from a multi-layer GLP, make sure to pass `layer_idx`:
+
+```python
+import torch
+from glp import flow_matching
+from glp.denoiser import load_glp
+
+device = "cuda:0"
+model = load_glp("generative-latent-prior/glp-llama1b-d12-multi", device=device)
+noise = torch.randn(64, 1, model.denoiser.model.d_input, device=device)
+# generate 64 Layer 07 activations of Llama1B
+gen_latents = flow_matching.sample(model, noise, num_timesteps=100, layer_idx=7)
+gen_acts = model.normalizer.denormalize(gen_latents, layer_idx=7)
+```
+
 ## Roadmap
 All features marked as complete below are stable and ready to use.
 
@@ -110,6 +138,9 @@ All features marked as complete below are stable and ready to use.
 
 **09-08-2026**
 - [x] Release SAE and sentiment-based steering at `integrations/sae` and `integrations/sentiment`
+
+**09-10-2026**
+- [x] Release configs for multi-layer training
 
 ## Citing
 ```
