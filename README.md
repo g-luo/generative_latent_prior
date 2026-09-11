@@ -141,6 +141,7 @@ All features marked as complete below are stable and ready to use.
 
 **09-10-2026**
 - [x] Release configs for multi-layer training
+- [x] Release delta LM computation code at `glp/script_delta_lm.py`
 
 ## Citing
 ```
