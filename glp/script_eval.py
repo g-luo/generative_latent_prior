@@ -38,7 +38,7 @@ def frechet_distance(
 
     diff = mu1 - mu2
 
-    # Product might be almost singular
+    # product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
         msg = (
@@ -49,7 +49,7 @@ def frechet_distance(
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
 
-    # Numerical error might give slight imaginary component
+    # numerical error might give slight imaginary component
     if np.iscomplexobj(covmean):
         # if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
         #     m = np.max(np.abs(covmean.imag))

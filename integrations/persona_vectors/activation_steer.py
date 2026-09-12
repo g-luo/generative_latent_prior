@@ -55,7 +55,7 @@ class ActivationSteerer:
             raise ValueError(
                 f"Vector length {self.vector.numel()} ≠ model hidden_size {hidden}"
             )
-        # Check if positions is valid
+        # check if positions is valid
         valid_positions = {"all", "prompt", "response"}
         if self.positions not in valid_positions:
             raise ValueError("positions must be 'all', 'prompt', 'response'")
@@ -175,7 +175,7 @@ class ActivationSteererMultiple:
         self._handles = []
         self._steerers = []
 
-        # Validate and create individual steerers
+        # validate and create individual steerers
         for inst in self.instructions:
             steerer = ActivationSteerer(
                 model,

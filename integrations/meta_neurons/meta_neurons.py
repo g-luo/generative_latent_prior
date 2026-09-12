@@ -191,11 +191,9 @@ def join_probes(config, top_docs=3, bold_frac=0.4):
 # =======================
 #       Autointerp
 # =======================
-# The system prompt and the user prompt format are copied from Llama Scope's autointerp (He et al., 2024),
-# `generate_explanation_prompt` with include_cot=False:
+
+# this system prompt is copied from Llama Scope (He et al., 2024):
 # https://github.com/OpenMOSS/Language-Model-SAEs/blob/4dbbc45056e56995099e2184f1e8fc5bdc9378db/src/lm_saes/analysis/autointerp/explanation_prompts.py#L159-L239
-# The << >> highlighting is adapted from `TokenizedSample.display_highlighted` (https://github.com/OpenMOSS/Language-Model-SAEs/blob/4dbbc45056e56995099e2184f1e8fc5bdc9378db/src/lm_saes/analysis/samples.py#L95-L105):
-# Llama Scope highlights tokens with activation > 0.7 * max, we highlight tokens with min-max normalized activation >= 0.7.
 AUTOINTERP_SYSTEM_PROMPT = """We're studying features in a neural network. Each feature activates on some particular word/words/substring/concept in a short document. The activating words in each document are indicated with << ... >>. We will give you a list of documents on which the feature activates, in order from most strongly activating to least strongly activating.
 
 Your task is to:
@@ -246,6 +244,8 @@ Some examples:
 
 """
 
+# this autointerp prompt is adapted from Llama Scope (He et al., 2024):
+# https://github.com/OpenMOSS/Language-Model-SAEs/blob/4dbbc45056e56995099e2184f1e8fc5bdc9378db/src/lm_saes/analysis/samples.py#L95-L105
 def autointerp_prompt(top_documents, hf_tokenizer, activation_threshold=0.7):
     # documents in order of max activation, with tokens above activation_threshold (min-max normalized) marked <<like this>>
     user_prompt = "The activating documents are given below:\n\n"
@@ -256,9 +256,6 @@ def autointerp_prompt(top_documents, hf_tokenizer, activation_threshold=0.7):
         user_prompt += f"Example {i}: {text}\n\n"
     return [{"role": "system", "content": AUTOINTERP_SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}]
 
-# =======================
-#   Interpret Neurons
-# =======================
 def parse_autointerp(raw):
     try:
         return json.loads(raw.replace("```json", "").replace("```", ""))

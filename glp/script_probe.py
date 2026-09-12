@@ -25,6 +25,9 @@ from glp.denoiser import load_glp
 # ====================================
 #    Logistic Regression Functions
 # ====================================
+# adapted from SAE-Probes (Kantamneni et al., 2025) `find_best_reg`, which cross-validates an L2 logistic regression over C
+# and reports val / test AUC; we use sklearn's LogisticRegressionCV with standardized inputs and a fixed grid of Cs:
+# https://github.com/JoshEngels/SAE-Probes/blob/9917d94e8ab568e3686b6d3801fab52cda54b81d/utils_training.py#L59-L135
 def run_sklearn_logreg(X_train, y_train, X_test, y_test, parallel=True, n_jobs=-1, Cs=None, seed=1, max_iter=1000):
     if Cs is None:
         Cs = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1e0]
@@ -69,6 +72,8 @@ def prefilter_and_reshape_to_oned(X_train_batched, X_test_batched, y_train, devi
     b, _, d = X_train_batched.shape
     X_train = einops.rearrange(X_train_batched, "b n d -> n (b d)")
     X_test = einops.rearrange(X_test_batched, "b n d -> n (b d)")
+    # copied from SAE-Probes `get_sorted_indices` for ranking by class mean difference:
+    # https://github.com/JoshEngels/SAE-Probes/blob/9917d94e8ab568e3686b6d3801fab52cda54b81d/train_sae_probes.py#L79-L82
     X_train_diff = X_train[y_train == 1].mean(dim=0) - X_train[y_train == 0].mean(dim=0)
     sorted_indices = torch.argsort(torch.abs(X_train_diff), descending=True)
     sorted_indices = sorted_indices[:topk]
@@ -170,6 +175,7 @@ def compile_probe_results(save_folder):
     return results_df
 
 def download_cached_acts(cached_acts_folder, df_folder):
+    # the 113 binary classification datasets are from SAE-Probes (Kantamneni et al., 2025): https://github.com/JoshEngels/SAE-Probes
     script = f"""
     if [ ! -d "{df_folder}" ]; then
         mkdir -p {df_folder}
@@ -185,6 +191,9 @@ def download_cached_acts(cached_acts_folder, df_folder):
     subprocess.run(script, shell=True, check=True, executable='/bin/bash')
 
 def load_cached_acts(dataset_folder, df_path):
+    # the cached train / test indices were generated with SAE-Probes `get_train_test_indices(y, num_train, num_test, pos_ratio=0.5, seed=42)`,
+    # where num_train = min(1024, N - 100) and num_test = N - num_train - 1, with N the dataset size after class balancing:
+    # https://github.com/JoshEngels/SAE-Probes/blob/9917d94e8ab568e3686b6d3801fab52cda54b81d/utils_data.py#L73-L105
     df_all = pd.read_csv(df_path)
     def load(split):
         indices = json.load(open(f"{dataset_folder}/indices_{split}.json"))

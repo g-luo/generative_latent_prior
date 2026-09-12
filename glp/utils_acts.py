@@ -128,7 +128,7 @@ class MemmapReader:
         indices_path = self.data_dir / 'data_indices.npy'
         self.indices = np.load(indices_path)
         logger.info(f'Loaded {len(self.indices)} indices from {indices_path}')
-        # Dictionary to cache open memmap files
+        # dictionary to cache open memmap files
         self._memmap_cache = OrderedDict()
         
     def __len__(self):
@@ -150,12 +150,12 @@ class MemmapReader:
     def __getitem__(self, idx):
         """Get the chunk at the given index"""
         if isinstance(idx, slice):
-            # Handle slice indexing
+            # handle slice indexing
             indices = range(*idx.indices(len(self)))
             return [self[i] for i in indices]
-        # Get the file_idx, start_idx, and end_idx for this chunk
+        # get the file_idx, start_idx, and end_idx for this chunk
         file_idx, start_idx, end_idx = self.indices[idx]
-        # Get the memmap for this file
+        # get the memmap for this file
         memmap = self._get_memmap(file_idx)
-        # Return the chunk
+        # return the chunk
         return memmap[start_idx:end_idx]
