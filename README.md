@@ -124,6 +124,22 @@ gen_latents = flow_matching.sample(model, noise, num_timesteps=100, layer_idx=7)
 gen_acts = model.normalizer.denormalize(gen_latents, layer_idx=7)
 ```
 
+## Meta-Neurons
+We also release the meta-neurons of the Llama8B GLP, including their max activating examples and descriptions.
+| Llama8B | Link |
+|-|-|
+| llama8b-layer15-meta-neurons | [Link](https://huggingface.co/datasets/generative-latent-prior/llama8b-layer15-meta-neurons) |
+
+Download them with the following command:
+```
+huggingface-cli download generative-latent-prior/llama8b-layer15-meta-neurons \
+    --repo-type dataset \
+    --local-dir integrations/meta_neurons/runs/meta_neurons \
+    --local-dir-use-symlinks False
+```
+
+To reproduce them yourself, follow the instructions at `integrations/meta_neurons/README.md`.
+
 ## Roadmap
 All features marked as complete below are stable and ready to use.
 
@@ -141,7 +157,10 @@ All features marked as complete below are stable and ready to use.
 
 **09-10-2026**
 - [x] Release configs for multi-layer training
+
+**09-12-2026**
 - [x] Release delta LM computation code at `glp/script_delta_lm.py`
+- [x] Release meta-neuron analysis code at `integrations/meta_neurons`
 
 ## Citing
 ```
